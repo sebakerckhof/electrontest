@@ -1,0 +1,7 @@
+#!/bin/bash
+
+TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TAG="jenkins-$BUILD_NUMBER"
+
+"$TOOL_DIR/container" npm install
+"$TOOL_DIR/container" npm run build

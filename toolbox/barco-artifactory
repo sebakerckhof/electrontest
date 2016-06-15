@@ -1,0 +1,83 @@
+#!/bin/bash
+
+BARCO_ARTIFACTORY_SETTINGS_FILE="$HOME/.barco-artifactory"
+
+store_configuration()
+{
+	echo "Saving credentials in $BARCO_ARTIFACTORY_SETTINGS_FILE"
+	cat > "$BARCO_ARTIFACTORY_SETTINGS_FILE" << EOF
+BARCO_ARTIFACTORY_USER="$1"
+BARCO_ARTIFACTORY_PASSWORD="$2"
+EOF
+}
+
+show_usage()
+{
+	echo "usage: $0 <command>"
+	echo ""
+	echo "Commands:"
+	echo "\tput <repository> <localfilepath> [<remotefilename>]"
+	echo "\tget <repository> <remotefilename> <localfilepath>"
+	echo "\tconfig <username> <password"
+	exit -1
+}
+
+if [ -f "$BARCO_ARTIFACTORY_SETTINGS_FILE" ]; then
+	source "$BARCO_ARTIFACTORY_SETTINGS_FILE"
+fi
+
+if [ -z "$BARCO_ARTIFACTORY_USER" ]; then
+	echo -n "Enter your initials: "
+	read BARCO_ARTIFACTORY_USER
+	echo -n "Enter your password: "
+	read -s BARCO_ARTIFACTORY_PASSWORD
+	echo
+	store_configuration "$BARCO_ARTIFACTORY_USER" "$BARCO_ARTIFACTORY_PASSWORD"
+fi
+
+COMMAND="$1"
+
+if [ "$COMMAND" = "put" ]; then
+	if [[ ( $# -lt 3 ) || ( $# -gt 4 ) ]]; then
+		echo "put command accepts these arguments: <repository> <localfilepath> [<remotefilename>]"
+		exit -1
+	fi
+	REPOSITORY="$2"
+	LOCAL_FILENAME="$3"
+	if [ $# = 3 ]; then
+		REMOTE_FILENAME=`basename $LOCAL_FILENAME`
+	else
+		REMOTE_FILENAME="$4"
+	fi
+	REMOTE_URL="https://bin.barco.com/artifactory/$REPOSITORY/$REMOTE_FILENAME"
+	CURL_OUTPUT=$(curl --fail -v --user "$BARCO_ARTIFACTORY_USER:$BARCO_ARTIFACTORY_PASSWORD" --data-binary @"$LOCAL_FILENAME" -X PUT "$REMOTE_URL" 2>&1)
+	CURL_RESULT=$?
+	if [ $CURL_RESULT -eq 0 ]; then
+		echo "$REMOTE_URL"
+	else
+		echo "Upload failed:"
+		echo "$CURL_OUTPUT"
+		exit -1
+	fi
+elif [ "$COMMAND" = "get" ]; then
+	if [ $# -ne 4 ]; then
+		echo "get command requires three arguments: <repository> <remotefilename> <localfilepath>"
+		exit -1
+	fi
+	REPOSITORY="$2"
+	REMOTE_FILENAME="$3"
+	LOCAL_FILENAME="$4"
+	REMOTE_URL="https://bin.barco.com/artifactory/$REPOSITORY/$REMOTE_FILENAME"
+	curl -o "$LOCAL_FILENAME" --fail --user "$BARCO_ARTIFACTORY_USER:$BARCO_ARTIFACTORY_PASSWORD" "$REMOTE_URL"
+elif [ "$COMMAND" = "config" ]; then
+	if [ $# -ne 3 ]; then
+		echo "config command requres two parameters: <initials> <password>"
+		show_usage
+	fi
+	store_configuration "$2" "$3"
+elif [ "$COMMAND" = "cred" ]; then
+	echo -n "$BARCO_ARTIFACTORY_USER:$BARCO_ARTIFACTORY_PASSWORD"
+else
+	echo "Unknown command"
+	show_usage
+fi

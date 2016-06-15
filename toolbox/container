@@ -1,0 +1,24 @@
+#!/bin/bash
+
+TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DOCKER_IMAGE_ID_FILE="$TOOL_DIR/.docker-image-id"
+SRC_DIR="$TOOL_DIR/.."
+
+if [ -f "$DOCKER_IMAGE_ID_FILE" ]; then
+	DOCKER_IMAGE_ID=$(<"$DOCKER_IMAGE_ID_FILE")
+else
+	echo "Building tool"
+	ARTIFACTORY_CREDENTIALS=$("$TOOL_DIR/barco-artifactory" cred)
+	DOCKER_IMAGE_ID=$(docker build --rm -q --build-arg "artifactory_credentials=$ARTIFACTORY_CREDENTIALS" -t pair-toolbox "$TOOL_DIR" 2>/dev/null | awk '/Successfully built/{print $NF}')
+	echo "$DOCKER_IMAGE_ID" > "$DOCKER_IMAGE_ID_FILE"
+fi
+
+
+#-v "$HOME/.npmrc":/root/.npmrc \
+
+docker run \
+	--rm -a stdout -a stderr -i \
+	-v "$HOME/.barco-artifactory":/root/.barco-artifactory \
+	-v "$SRC_DIR":/src	--workdir=/src \
+	"$DOCKER_IMAGE_ID" \
+	"$@"

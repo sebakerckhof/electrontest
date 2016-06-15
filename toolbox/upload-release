@@ -1,0 +1,12 @@
+#!/bin/bash
+
+REPOSITORY_NAME=barco-edu-bpt
+DOCKER_SERVER=docker.barco.com
+
+TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+GIT_BRANCH="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
+
+IMAGE_NAME="$REPOSITORY_NAME:$GIT_BRANCH"
+docker tag "$IMAGE_NAME" "$DOCKER_SERVER/$IMAGE_NAME"
+docker push "$DOCKER_SERVER/$IMAGE_NAME"
+docker rmi "$DOCKER_SERVER/$IMAGE_NAME"

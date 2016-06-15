@@ -1,0 +1,8 @@
+#!/bin/bash
+
+REPOSITORY_NAME=barco-edu-bpt
+TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+GIT_BRANCH="$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)"
+
+$TOOL_DIR/container npm install
+$TOOL_DIR/container npm run build -t "$GIT_BRANCH"

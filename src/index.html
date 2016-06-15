@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Test</title>
+</head>
+
+<body>
+	<h2>Open:</h2>
+	<form class="input-group">
+		<input type="text" class="form-control" id="connectWith" placeholder="https://"><button id="connect">Connect</button>
+	</form>
+<script>
+	const connectWith = localStorage.getItem('connectWith');
+	const input = document.getElementById("connectWith");
+	const button = document.getElementById("connect");
+
+	if(connectWith){
+		input.value = connectWith;
+	}
+
+	button.addEventListener("click", function(e){
+		e.preventDefault();
+		localStorage.setItem('connectWith', input.value);
+		TEST.open(input.value);
+	});
+</script>
+</body>
+
+</html>
