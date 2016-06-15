@@ -1,8 +1,4 @@
-# Barco Pairing Tool
-
-> "The Barco Pairing Tool changed my life" 
-> -- Unknown source
-
+# Electron test
 
 ## Dev
 
@@ -13,7 +9,7 @@ $ npm install
 ### Run
 
 ```
-$ npm start
+$ npm run start
 ```
 
 ### Build
